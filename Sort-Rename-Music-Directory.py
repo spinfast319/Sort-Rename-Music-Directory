@@ -6,7 +6,6 @@
 # It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and removes any characters that makes windows fail.
 # It can also handle multiple versions of the same album. If it finds a folder already exists with the album name it will rename it with additional metadata.
 # It starts with adding the edition if it has one, then it tries the catalog number, then the year. It will fail if versions with those already exists but that could be extended if needed.
-#test
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
