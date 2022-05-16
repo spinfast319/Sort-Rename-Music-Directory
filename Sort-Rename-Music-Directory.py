@@ -16,12 +16,13 @@ import datetime # Imports functionality that lets you make timestamps
 #  Set your directories here
 directory_to_check = "M:\Python Test Environment\Albums" # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed" # Which directory do you want to copy the rename folders to?
-log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log in?
+log_directory = "M:\Python Test Environment\Logs\\" # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
 
 # Set up the counters for completed albums and missing origin files
 count = 0
-missing = 0
+good_missing = 0
+bad_missing = 0
 
 #intro text
 print("")
@@ -43,11 +44,30 @@ def cleanFilename(s):
     #return s; 
 
 
+# A function to log events
+def log_outcomes(d,p,m):
+    global log_directory
+    script_name = "Sort-Rename-Music-Directory Script"
+    today = datetime.datetime.now()
+    log_name = p
+    directory = d
+    message = m
+    album_name = directory.split("\\")
+    album_name = album_name[-1]
+    log_path = log_directory + log_name + ".txt"
+    with open(log_path, 'a',encoding='utf-8') as log_name:
+        log_name.write("--{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ " from the " + script_name + ".\n")
+        log_name.write("The album " + album_name + " " + message + ".\n")
+        log_name.write("Album location: " + directory + "\n")
+        log_name.write(" \n")    
+
 
 #  A function that gets the directory and then opens the origin file and prints the name of the folder
 def sort_rename(directory):
         global count
-        global missing
+        global good_missing
+        global bad_missing
+        print ("\n")
         print("Sorting and renaming " + directory)
         #check to see if there is an origin file
         file_exists = os.path.exists('origin.yaml')
@@ -120,25 +140,25 @@ def sort_rename(directory):
             count +=1 # variable will increment every loop iteration
         #otherwise log that the origin file is missing
         else:
-            missing +=1 # variable will increment every loop iteration
-            today = datetime.datetime.now()
             #split the director to make sure that it distinguishes between foldrs that should and shouldn't have origin files
             path_segments = directory.split("\\")
             #create different log files depending on whether the origin file is missing somewhere it shouldn't be
             if len(path_segments) == 5:
                 #log the missing origin file folders that are likely supposed to be missing
-                print ("--Missing origin file logged.")
-                the_good_log = log_directory + "\\good-log.txt"
-                with open(the_good_log, 'a') as log_file1:
-                    log_file1.write("{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ ".\n")
-                    log_file1.write(directory + "\\ is missing an origin file.\n")
+                print ("--An origin file is missing from a folder that should not have one.")
+                print("--Logged missing origin file.")
+                log_name = "good-missing-origin"
+                log_message = "origin file is missing from a folder that should not have one. You can double check"
+                log_outcomes(directory,log_name,log_message)
+                good_missing +=1 # variable will increment every loop iteration
             else:    
                 #log the missing origin file folders that are not likely supposed to be missing
-                print ("--Missing origin file logged.")
-                the_bad_log = log_directory + "\\bad-log.txt"
-                with open(the_bad_log, 'a') as log_file2:
-                    log_file2.write("{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ ".\n")
-                    log_file2.write(directory + "\\ is missing an origin file.\n")
+                print ("--An origin file is missing from a folder that should have one.")
+                print("--Logged missing origin file.")
+                log_name = "bad-missing-origin"
+                log_message = "origin file is missing from a folder that should have one"
+                log_outcomes(directory,log_name,log_message)
+                bad_missing +=1 # variable will increment every loop iteration
         
 # Get all the subdirectories of directory_to_check recursively and store them in a list:
 directories = [os.path.abspath(x[0]) for x in os.walk(directory_to_check)]
@@ -152,7 +172,9 @@ for i in directories:
 #summary text
 print("")
 print("This script reorganized " + str(count) + " albums. You did the thing!")
-print("There were " + str(missing) + " folders with no origin files. Check the log to see what they were.")
+print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
+print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
+print("Check the logs to see which folders had errors and what they were.")
 
 # ToDo
 # Add error handling album already exists-skip and log
