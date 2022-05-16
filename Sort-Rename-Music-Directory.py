@@ -23,6 +23,7 @@ work_directory = "M:\Python Test Environment\Work" # Create directory for temp f
 count = 0
 good_missing = 0
 bad_missing = 0
+error_message = 0
 
 #intro text
 print("")
@@ -172,9 +173,16 @@ for i in directories:
 #summary text
 print("")
 print("This script reorganized " + str(count) + " albums. You did the thing!")
-print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
-print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
-print("Check the logs to see which folders had errors and what they were.")
+if bad_missing >= 1:
+    print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
+    error_message +=1 # variable will increment if statement is true
+if good_missing >= 1:
+    print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
+    error_message +=1 # variable will increment if statement is true
+if error_message >= 1:
+    print("Check the logs to see which folders had errors and what they were.")
+else:
+    print("There were no errors.")    
 
 # ToDo
 # Add error handling album already exists-skip and log
