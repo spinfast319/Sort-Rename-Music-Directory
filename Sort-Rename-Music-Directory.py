@@ -6,6 +6,7 @@
 # It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and removes any characters that makes windows fail.
 # It can also handle multiple versions of the same album. If it finds a folder already exists with the album name it will rename it with additional metadata.
 # It starts with adding the edition if it has one, then it tries the catalog number, then the year. It will fail if versions with those already exists but that could be extended if needed.
+# It has been tested and works in both ubuntu linux and windows 10
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
@@ -14,10 +15,17 @@ import shutil # Imports functionality that lets you copy files and directory
 import datetime # Imports functionality that lets you make timestamps
 
 #  Set your directories here
-directory_to_check = "M:\Python Test Environment\Albums" # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums" # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed" # Which directory do you want to copy the rename folders to?
-log_directory = "M:\Python Test Environment\Logs\\" # Which directory do you want the log in?
+log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
+
+'''#  Set your linux directories here
+album_directory = "/mnt/m/Python Test Environment/Albums" # Which directory has the albums you want to update the origin files for
+renamed_directory = "/mnt/m/Python Test Environment/Renamed" # Which directory do you want to copy the rename folders to?
+log_directory = "/mnt/m/Python Test Environment/Logs/" # Which directory do you want the log albums that have missing origin files in?
+work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
+'''
 
 # Set up the counters for completed albums and missing origin files
 count = 0
@@ -53,9 +61,9 @@ def log_outcomes(d,p,m):
     log_name = p
     directory = d
     message = m
-    album_name = directory.split("\\")
+    album_name = directory.split(os.sep)
     album_name = album_name[-1]
-    log_path = log_directory + log_name + ".txt"
+    log_path = log_directory + os.sep + log_name + ".txt"
     with open(log_path, 'a',encoding='utf-8') as log_name:
         log_name.write("--{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ " from the " + script_name + ".\n")
         log_name.write("The album " + album_name + " " + message + ".\n")
@@ -75,7 +83,7 @@ def sort_rename(directory):
         #if origin file exists, load it, copy, and rename
         if file_exists == True:
             #open the yaml and turn the data into variables
-            with open(directory + '\origin.yaml',encoding='utf-8') as f:
+            with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
               data = yaml.load(f, Loader=yaml.FullLoader)
             artist_name = data['Artist']    
             album_name =  data['Name']
@@ -85,7 +93,7 @@ def sort_rename(directory):
             catalog_number = data['Catalog number']
                         
             #check to see if a folder with the artist name exists
-            artist_folder_path = renamed_directory + "\\" + artist_name  
+            artist_folder_path = renamed_directory + os.sep + artist_name  
             isdir_artist = os.path.isdir(artist_folder_path)   
             
             #create artist folder if it doesn't exist
@@ -96,19 +104,19 @@ def sort_rename(directory):
                 print ("--Created directory for " + artist_name)
                 
             #copy directory to work folder   
-            full_work_path = work_directory + "\\" + original_folder_name
+            full_work_path = work_directory + os.sep + original_folder_name
             shutil.copytree(directory, full_work_path)  
             print ("--Copied " + original_folder_name + " to work directory")   
          
            #check to see if an album with the name exists in the artist folder and try a variation if there is 
            #start by setting up different folder names if there is a duplicate folder (normal>edition>catalog>original year)
-            artist_album_path = artist_folder_path + "\\" + album_name  
+            artist_album_path = artist_folder_path + os.sep + album_name  
             isdir_album = os.path.isdir(artist_album_path)   
-            artist_album_edition_path = artist_folder_path + "\\" + album_name + " (" + str(edition) + ")"  
+            artist_album_edition_path = artist_folder_path + os.sep + album_name + " (" + str(edition) + ")"  
             isdir_album_edition = os.path.isdir(artist_album_edition_path) 
-            artist_album_catalog_path = artist_folder_path + "\\" + album_name + " (Cat# " + str(catalog_number) + ")"  
+            artist_album_catalog_path = artist_folder_path + os.sep + album_name + " (Cat# " + str(catalog_number) + ")"  
             isdir_album_catalog = os.path.isdir(artist_album_catalog_path)
-            artist_album_year_path = artist_folder_path + "\\" + album_name + " (" + str(original_year) + ")"  
+            artist_album_year_path = artist_folder_path + os.sep + album_name + " (" + str(original_year) + ")"  
             isdir_album_year = os.path.isdir(artist_album_year_path)
             #set album_name for folder based on wheter there is an existing folder and the right metadata
             if isdir_album == False:
@@ -129,12 +137,12 @@ def sort_rename(directory):
             clean_final_album_name = cleanFilename(final_album_name)
               
             #rename album folder
-            final_album_path = work_directory + "\\" + clean_final_album_name 
+            final_album_path = work_directory + os.sep + clean_final_album_name 
             os.rename(full_work_path,final_album_path)
             print ("--Renamed " + original_folder_name + " to " + clean_final_album_name)    
             
             #move renamed album to artist folder   
-            full_artist_folder_path = artist_folder_path + "\\" + clean_final_album_name
+            full_artist_folder_path = artist_folder_path + os.sep + clean_final_album_name
             shutil.move(final_album_path, full_artist_folder_path)  
             print ("--Moved " + clean_final_album_name + " to " + artist_name + " directory")   
             
@@ -142,7 +150,7 @@ def sort_rename(directory):
         #otherwise log that the origin file is missing
         else:
             #split the director to make sure that it distinguishes between foldrs that should and shouldn't have origin files
-            path_segments = directory.split("\\")
+            path_segments = directory.split(os.sep)
             #create different log files depending on whether the origin file is missing somewhere it shouldn't be
             if len(path_segments) == 5:
                 #log the missing origin file folders that are likely supposed to be missing
@@ -161,9 +169,9 @@ def sort_rename(directory):
                 log_outcomes(directory,log_name,log_message)
                 bad_missing +=1 # variable will increment every loop iteration
         
-# Get all the subdirectories of directory_to_check recursively and store them in a list:
-directories = [os.path.abspath(x[0]) for x in os.walk(directory_to_check)]
-directories.remove(os.path.abspath(directory_to_check)) # If you don't want your main directory included
+# Get all the subdirectories of album_directory recursively and store them in a list:
+directories = [os.path.abspath(x[0]) for x in os.walk(album_directory)]
+directories.remove(os.path.abspath(album_directory)) # If you don't want your main directory included
 
 #  Run a loop that goes into each directory identified in the list and runs the function that caopies and renames the folders
 for i in directories:
@@ -184,7 +192,6 @@ if error_message >= 1:
 else:
     print("There were no errors.")    
 
-# ToDo
+# Future idea
 # Add error handling album already exists-skip and log
-# test in linux
 # add some nuance to the windows character replacements
