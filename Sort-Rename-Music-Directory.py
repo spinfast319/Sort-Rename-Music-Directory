@@ -1,12 +1,11 @@
 # Sort and Rename Music Directories
 # author: hypermodified
-# version: 1.0
 # This script is meant to use yaml origin files to provide standardised metadata to rename music folders
 # It takes the folder and reads what the artist and album name are. It then creates a artist folder and then renames the album to just the album name and moves it into the folder.
 # It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and removes any characters that makes windows fail.
 # It can also handle multiple versions of the same album. If it finds a folder already exists with the album name it will rename it with additional metadata.
 # It starts with adding the edition if it has one, then it tries the catalog number, then the year. It will fail if versions with those already exists but that could be extended if needed.
-# It has been tested and works in both ubuntu linux and windows 10
+# It has been tested and works in both Ubuntu Linux and Windows 10.
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
@@ -32,6 +31,11 @@ count = 0
 good_missing = 0
 bad_missing = 0
 error_message = 0
+
+# identifies location origin files are supposed to be
+path_segments = album_directory.split(os.sep)
+segments = len(path_segments)
+origin_location = segments + 1
 
 #intro text
 print("")
@@ -68,7 +72,8 @@ def log_outcomes(d,p,m):
         log_name.write("--{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ " from the " + script_name + ".\n")
         log_name.write("The album " + album_name + " " + message + ".\n")
         log_name.write("Album location: " + directory + "\n")
-        log_name.write(" \n")    
+        log_name.write(" \n")   
+        log_name.close() 
 
 
 #  A function that gets the directory and then opens the origin file and prints the name of the folder
@@ -76,6 +81,7 @@ def sort_rename(directory):
         global count
         global good_missing
         global bad_missing
+        global origin_location
         print ("\n")
         print("Sorting and renaming " + directory)
         #check to see if there is an origin file
@@ -91,6 +97,7 @@ def sort_rename(directory):
             original_year = data['Original year']
             edition = data['Edition']
             catalog_number = data['Catalog number']
+            f.close()
                         
             #check to see if a folder with the artist name exists
             artist_folder_path = renamed_directory + os.sep + artist_name  
@@ -150,9 +157,10 @@ def sort_rename(directory):
         #otherwise log that the origin file is missing
         else:
             #split the director to make sure that it distinguishes between foldrs that should and shouldn't have origin files
-            path_segments = directory.split(os.sep)
+            current_path_segments = directory.split(os.sep)
+            current_segments = len(current_path_segments)
             #create different log files depending on whether the origin file is missing somewhere it shouldn't be
-            if len(path_segments) == 5:
+            if origin_location != current_segments:
                 #log the missing origin file folders that are likely supposed to be missing
                 print ("--An origin file is missing from a folder that should not have one.")
                 print("--Logged missing origin file.")
