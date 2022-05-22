@@ -70,7 +70,7 @@ def log_outcomes(d,p,m):
     log_path = log_directory + os.sep + log_name + ".txt"
     with open(log_path, 'a',encoding='utf-8') as log_name:
         log_name.write("--{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ " from the " + script_name + ".\n")
-        log_name.write("The album " + album_name + " " + message + ".\n")
+        log_name.write("The album folder " + album_name + " " + message + ".\n")
         log_name.write("Album location: " + directory + "\n")
         log_name.write(" \n")   
         log_name.close() 
@@ -165,7 +165,7 @@ def sort_rename(directory):
                 print ("--An origin file is missing from a folder that should not have one.")
                 print("--Logged missing origin file.")
                 log_name = "good-missing-origin"
-                log_message = "origin file is missing from a folder that should not have one. You can double check"
+                log_message = "origin file is missing from a folder that should not have one.\nSince it shouldn't be there it is probably fine but you can double check"
                 log_outcomes(directory,log_name,log_message)
                 good_missing +=1 # variable will increment every loop iteration
             else:    
@@ -189,12 +189,17 @@ for i in directories:
 #summary text
 print("")
 print("This script reorganized " + str(count) + " albums. You did the thing!")
+print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 if bad_missing >= 1:
-    print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
+    print("--Warning: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
     error_message +=1 # variable will increment if statement is true
+elif bad_missing == 0:    
+    print("--Info: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
 if good_missing >= 1:
-    print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
+    print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
     error_message +=1 # variable will increment if statement is true
+elif good_missing == 0:    
+    print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
 if error_message >= 1:
     print("Check the logs to see which folders had errors and what they were.")
 else:
