@@ -19,6 +19,12 @@ renamed_directory = "M:\Python Test Environment\Renamed" # Which directory do yo
 log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
 
+# Set whether you are using nested folders or have all albums in one directory here
+# If you have all your ablums in one music directory Music/Album_name then set this value to 1
+# If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
+# The default is 1
+album_depth = 1
+
 '''#  Set your linux directories here
 album_directory = "/mnt/m/Python Test Environment/Albums" # Which directory has the albums you want to update the origin files for
 renamed_directory = "/mnt/m/Python Test Environment/Renamed" # Which directory do you want to copy the rename folders to?
@@ -26,7 +32,7 @@ log_directory = "/mnt/m/Python Test Environment/Logs/" # Which directory do you 
 work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
 '''
 
-# Set up the counters for completed albums and missing origin files
+# Establishes the counters for completed albums and missing origin files
 count = 0
 good_missing = 0
 bad_missing = 0
@@ -35,7 +41,7 @@ error_message = 0
 # identifies location origin files are supposed to be
 path_segments = album_directory.split(os.sep)
 segments = len(path_segments)
-origin_location = segments + 1
+origin_location = segments + album_depth
 
 #intro text
 print("")
