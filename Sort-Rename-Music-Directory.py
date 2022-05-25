@@ -53,14 +53,34 @@ print("")
 def cleanFilename(s):
     if not s:
         return ''
-    badchars = '\\/:*\"<>|'
-    badchars2 = '?'
-    for c in badchars:
-        s = s.replace(c, '-')
+    badchar1 = '\"'
+    badchar2 = '?'
+    badchar3 = ':'
+    badchar4 = '*'
+    badchar5 = '|'
+    badchar6 = '<'
+    badchar7 = '>'
+    badchar8 = '\\'
+    badchar9 = '/'
+    for c in badchar1:
+        s = s.replace(c, '＂')
+    for c in badchar2:
+        s = s.replace(c, '？')
+    for c in badchar3:
+        s = s.replace(c, '：')
+    for c in badchar4:
+        s = s.replace(c, '＊')
+    for c in badchar5:
+        s = s.replace(c, '｜')
+    for c in badchar6:
+        s = s.replace(c, '＜')
+    for c in badchar7:
+        s = s.replace(c, '＞')
+    for c in badchar8:
+        s = s.replace(c, '＼')
+    for c in badchar9:
+        s = s.replace(c, '／')
     return s; 
-    #for c in badchars2:
-    #    s = s.replace(c, '？')
-    #return s; 
 
 
 # A function to log events
@@ -213,4 +233,4 @@ else:
 
 # Future idea
 # Add error handling album already exists-skip and log
-# add some nuance to the windows character replacements
+# make windows character replacement work for folder names too
