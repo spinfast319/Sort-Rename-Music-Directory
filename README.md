@@ -10,10 +10,16 @@ It can handle albums with artwork folders or multiple disc folders in them. It c
 
 ## Install and set up
 Clone this script where you want to run it.
-Set up or specify the four directories you will be using
+
+Set up or specify the four directories you will be using and specify whether you albums are nested under artist or not.
 1. The directory the albums you want to sort and rename are in
 2. The directory you want them moved to once you sort and rename them
 3. A directory to store the log files the script creates
 4. An empty directory the script will use to temporarily hold and rename files before it moves them to the final location
+5. Set the album_depth variable to specify whether you are using nested folders or have all albums in one directory
+   - If you have all your ablums in one music directory, ie. Music/Album then set this value to 1
+   - If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 
-Then run the script.  It will create copies of the albums and not delete the originals.
+The default is 1 (Music/Album)
+
+Then run the script from the command line.  It will create copies of the albums and not delete the originals.
