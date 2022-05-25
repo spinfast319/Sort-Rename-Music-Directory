@@ -22,4 +22,4 @@ Set up or specify the four directories you will be using and specify whether you
 
 The default is 1 (Music/Album)
 
-Then run the script from the command line.  It will create copies of the albums and not delete the originals.
+Then run the script from the command line.  It will create copies of the albums and not delete the originals. test
