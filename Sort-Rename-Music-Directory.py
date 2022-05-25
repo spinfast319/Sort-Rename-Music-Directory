@@ -126,14 +126,15 @@ def sort_rename(directory):
             f.close()
                         
             #check to see if a folder with the artist name exists
-            artist_folder_path = renamed_directory + os.sep + artist_name  
-            isdir_artist = os.path.isdir(artist_folder_path)   
+            clean_artist_name = cleanFilename(artist_name)
+            clean_artist_folder_path = renamed_directory + os.sep + clean_artist_name
+            isdir_artist = os.path.isdir(clean_artist_folder_path)   
             
             #create artist folder if it doesn't exist
             if isdir_artist == True:
                 print ("--No new directory needed for " + artist_name)
             else:
-                os.mkdir(artist_folder_path)
+                os.mkdir(clean_artist_folder_path)
                 print ("--Created directory for " + artist_name)
                 
             #copy directory to work folder   
@@ -143,13 +144,13 @@ def sort_rename(directory):
          
            #check to see if an album with the name exists in the artist folder and try a variation if there is 
            #start by setting up different folder names if there is a duplicate folder (normal>edition>catalog>original year)
-            artist_album_path = artist_folder_path + os.sep + album_name  
+            artist_album_path = clean_artist_folder_path + os.sep + album_name  
             isdir_album = os.path.isdir(artist_album_path)   
-            artist_album_edition_path = artist_folder_path + os.sep + album_name + " (" + str(edition) + ")"  
+            artist_album_edition_path = clean_artist_folder_path + os.sep + album_name + " (" + str(edition) + ")"  
             isdir_album_edition = os.path.isdir(artist_album_edition_path) 
-            artist_album_catalog_path = artist_folder_path + os.sep + album_name + " (Cat# " + str(catalog_number) + ")"  
+            artist_album_catalog_path = clean_artist_folder_path + os.sep + album_name + " (Cat# " + str(catalog_number) + ")"  
             isdir_album_catalog = os.path.isdir(artist_album_catalog_path)
-            artist_album_year_path = artist_folder_path + os.sep + album_name + " (" + str(original_year) + ")"  
+            artist_album_year_path = clean_artist_folder_path + os.sep + album_name + " (" + str(original_year) + ")"  
             isdir_album_year = os.path.isdir(artist_album_year_path)
             #set album_name for folder based on wheter there is an existing folder and the right metadata
             if isdir_album == False:
@@ -175,7 +176,7 @@ def sort_rename(directory):
             print ("--Renamed " + original_folder_name + " to " + clean_final_album_name)    
             
             #move renamed album to artist folder   
-            full_artist_folder_path = artist_folder_path + os.sep + clean_final_album_name
+            full_artist_folder_path = clean_artist_folder_path + os.sep + clean_final_album_name
             shutil.move(final_album_path, full_artist_folder_path)  
             print ("--Moved " + clean_final_album_name + " to " + artist_name + " directory")   
             
@@ -233,4 +234,4 @@ else:
 
 # Future idea
 # Add error handling album already exists-skip and log
-# make windows character replacement work for folder names too
+# test in linux again
