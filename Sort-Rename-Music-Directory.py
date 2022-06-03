@@ -13,11 +13,13 @@ import yaml  # Imports yaml
 import shutil # Imports functionality that lets you copy files and directory
 import datetime # Imports functionality that lets you make timestamps
 
+
 #  Set your directories here
 album_directory = "M:\Python Test Environment\Albums" # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed" # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
+
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
@@ -25,10 +27,11 @@ work_directory = "M:\Python Test Environment\Work" # Create directory for temp f
 # The default is 1
 album_depth = 1
 
-'''#  Set your linux directories here
+'''
+#  Set your linux directories here
 album_directory = "/mnt/m/Python Test Environment/Albums" # Which directory has the albums you want to update the origin files for
 renamed_directory = "/mnt/m/Python Test Environment/Renamed" # Which directory do you want to copy the rename folders to?
-log_directory = "/mnt/m/Python Test Environment/Logs/" # Which directory do you want the log albums that have missing origin files in?
+log_directory = "/mnt/m/Python Test Environment/Logs" # Which directory do you want the log albums that have missing origin files in?
 work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
 '''
 
@@ -36,6 +39,7 @@ work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for d
 count = 0
 good_missing = 0
 bad_missing = 0
+parse_error = 0
 error_message = 0
 
 # identifies location origin files are supposed to be
@@ -107,6 +111,7 @@ def sort_rename(directory):
         global count
         global good_missing
         global bad_missing
+        global parse_error
         global origin_location
         print ("\n")
         print("Sorting and renaming " + directory)
@@ -114,9 +119,20 @@ def sort_rename(directory):
         file_exists = os.path.exists('origin.yaml')
         #if origin file exists, load it, copy, and rename
         if file_exists == True:
-            #open the yaml and turn the data into variables
-            with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
-              data = yaml.load(f, Loader=yaml.FullLoader)
+        #open the yaml 
+            try:
+                with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
+                  data = yaml.load(f, Loader=yaml.FullLoader)
+            except:
+                print("--There was an issue parsing the yaml file and the cover could not be downloaded.")
+                print("----Logged missing cover due to parse error. Redownload origin file.")
+                log_name = "parse-error"
+                log_message = "had an error parsing the yaml and the cover art could not be downloaded. Redownload the origin file"
+                log_outcomes(directory,log_name,log_message)
+                parse_error +=1 # variable will increment every loop iteration
+                return
+                
+            # turn the data into variables
             artist_name = data['Artist']    
             album_name =  data['Name']
             original_folder_name = data['Directory'] 
@@ -217,6 +233,11 @@ for i in directories:
 print("")
 print("This script reorganized " + str(count) + " albums. You did the thing!")
 print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
+if parse_error >= 1:
+    print("--Warning: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml. Redownload the yaml file.")
+    error_message +=1 # variable will increment if statement is true
+elif parse_error == 0:    
+    print("--Info: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml.")
 if bad_missing >= 1:
     print("--Warning: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
     error_message +=1 # variable will increment if statement is true
