@@ -83,20 +83,19 @@ def cleanFilename(file_name):
 
 
 # A function to log events
-def log_outcomes(d, p, m):
+def log_outcomes(directory, log_name, message):
     global log_directory
+    
     script_name = "Sort-Rename-Music-Directory Script"
     today = datetime.datetime.now()
-    log_name = p
-    directory = d
-    message = m
+    log_name = f"{log_name}.txt"
     album_name = directory.split(os.sep)
     album_name = album_name[-1]
-    log_path = log_directory + os.sep + log_name + ".txt"
+    log_path = os.path.join(log_directory, log_name)
     with open(log_path, "a", encoding="utf-8") as log_name:
-        log_name.write("--{:%b, %d %Y}".format(today) + " at " + "{:%H:%M:%S}".format(today) + " from the " + script_name + ".\n")
-        log_name.write("The album folder " + album_name + " " + message + ".\n")
-        log_name.write("Album location: " + directory + "\n")
+        log_name.write(f"--{today:%b, %d %Y} at {today:%H:%M:%S} from the {script_name}.\n")
+        log_name.write(f"The album folder {album_name} {message}.\n")
+        log_name.write(f"Album location: {directory}\n")
         log_name.write(" \n")
         log_name.close()
 
