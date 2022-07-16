@@ -15,8 +15,8 @@ import datetime  # Imports functionality that lets you make timestamps
 
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
-renamed_directory = "M:\Python Test Environment\Renamed2"  # Which directory do you want to copy the rename folders to?
+album_directory = "M:\Python Test Environment\Test Albums"  # Which directory do you want to start with?
+renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
 
@@ -46,6 +46,57 @@ error_message = 0
 path_segments = album_directory.split(os.sep)
 segments = len(path_segments)
 origin_location = segments + album_depth
+
+# A function to log events
+def log_outcomes(directory, log_name, message):
+    global log_directory
+    
+    script_name = "Sort-Rename-Music-Directory Script"
+    today = datetime.datetime.now()
+    log_name = f"{log_name}.txt"
+    album_name = directory.split(os.sep)
+    album_name = album_name[-1]
+    log_path = os.path.join(log_directory, log_name)
+    with open(log_path, "a", encoding="utf-8") as log_name:
+        log_name.write(f"--{today:%b, %d %Y} at {today:%H:%M:%S} from the {script_name}.\n")
+        log_name.write(f"The album folder {album_name} {message}.\n")
+        log_name.write(f"Album location: {directory}\n")
+        log_name.write(" \n")
+        log_name.close()
+
+# A function that determines if there is an error
+def error_exists(error_type):
+    global error_message
+
+    if error_type >= 1:
+        error_message += 1  # variable will increment if statement is true
+        return "Warning"
+    else:
+        return "Info"
+
+# A function that writes a summary of what the script did at the end of the process
+def summary_text():
+    global count
+    global parse_error
+    global bad_missing
+    global good_missing
+    global error_message
+
+    print("")
+    print(f"This script reorganized {count} albums.")
+    print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
+
+    error_status = error_exists(parse_error)
+    print(f"--{error_status}: There were {parse_error} albums skipped due to not being able to open the yaml. Redownload the yaml file.")
+    error_status = error_exists(bad_missing)
+    print(f"--{error_status}: There were {bad_missing} folders missing an origin files that should have had them.")
+    error_status = error_exists(good_missing)
+    print(f"--Info: Some folders didn't have origin files and probably shouldn't have origin files. {good_missing} of these folders were identified.")
+    
+    if error_message >= 1:
+        print("Check the logs to see which folders had errors and what they were.")
+    else:
+        print("There were no errors.")
 
 #  A function to replace illegal characters in the windows operating system
 #  For other operating systems you could tweak this for their illegal characters
@@ -80,57 +131,6 @@ def cleanFilename(file_name):
     for c in badchar9:
         file_name = file_name.replace(c, "／")
     return file_name
-
-
-# A function to log events
-def log_outcomes(directory, log_name, message):
-    global log_directory
-    
-    script_name = "Sort-Rename-Music-Directory Script"
-    today = datetime.datetime.now()
-    log_name = f"{log_name}.txt"
-    album_name = directory.split(os.sep)
-    album_name = album_name[-1]
-    log_path = os.path.join(log_directory, log_name)
-    with open(log_path, "a", encoding="utf-8") as log_name:
-        log_name.write(f"--{today:%b, %d %Y} at {today:%H:%M:%S} from the {script_name}.\n")
-        log_name.write(f"The album folder {album_name} {message}.\n")
-        log_name.write(f"Album location: {directory}\n")
-        log_name.write(" \n")
-        log_name.close()
-
-
-# A function that writes a summary of what the script did at the end of the process
-def summary_text():
-    global count
-    global parse_error
-    global bad_missing
-    global good_missing
-    global error_message
-
-    print("")
-    print(f"This script reorganized {count} albums.")
-    print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
-    if parse_error >= 1:
-        print("--Warning: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml. Redownload the yaml file.")
-        error_message += 1  # variable will increment if statement is true
-    elif parse_error == 0:
-        print("--Info: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml.")
-    if bad_missing >= 1:
-        print("--Warning: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
-        error_message += 1  # variable will increment if statement is true
-    elif bad_missing == 0:
-        print("--Info: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
-    if good_missing >= 1:
-        print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
-        error_message += 1  # variable will increment if statement is true
-    elif good_missing == 0:
-        print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
-    if error_message >= 1:
-        print("Check the logs to see which folders had errors and what they were.")
-    else:
-        print("There were no errors.")
-
 
 #  A function that gets the directory and then opens the origin file and prints the name of the folder
 def sort_rename(directory):
