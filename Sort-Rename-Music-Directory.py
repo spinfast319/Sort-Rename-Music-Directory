@@ -15,7 +15,7 @@ import datetime  # Imports functionality that lets you make timestamps
 
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Test Albums"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
@@ -40,12 +40,17 @@ count = 0
 good_missing = 0
 bad_missing = 0
 parse_error = 0
+origin_old = 0
 error_message = 0
 
-# identifies location origin files are supposed to be
+# identifies location origin files are supposed to be and sets album_name
 path_segments = album_directory.split(os.sep)
 segments = len(path_segments)
-origin_location = segments + album_depth
+# origin_location = segments + album_depth
+album_location_check = segments + album_depth
+
+# creates the list of albums that need to be moved post sorting
+move_list = []
 
 # A function to log events
 def log_outcomes(directory, log_name, message):
@@ -136,104 +141,44 @@ def cleanFilename(file_name):
     return file_name
 
 
-#  A function that gets the directory and then opens the origin file and prints the name of the folder
-def sort_rename(directory):
+# A function to move albums to the correct folder
+def move_albums(move_list):
     global count
+
+    # Loop through the list of albums to move
+    for i in move_list:
+
+        # Break each entry into a source and target
+        start_path = i[0]
+        target = i[1]
+
+        # Move them to the folders they belong in
+        print("")
+        print("Moving.")
+        print(f"--Source: {start_path}")
+        print(f"--Destination: {target}")
+        shutil.move(start_path, target)
+        print("Move completed.")
+        count += 1  # variable will increment every loop iteration
+
+
+# A function to check if the origin file is there and to determine whether it is supposed to be there.
+def check_file(directory):
     global good_missing
     global bad_missing
-    global parse_error
-    global origin_location
-    print("\n")
-    print(f"Sorting and renaming {directory}")
+    global album_location_check
+
     # check to see if there is an origin file
     file_exists = os.path.exists("origin.yaml")
     # if origin file exists, load it, copy, and rename
     if file_exists == True:
-        # open the yaml
-        try:
-            with open(directory + os.sep + "origin.yaml", encoding="utf-8") as f:
-                data = yaml.load(f, Loader=yaml.FullLoader)
-        except:
-            print("--There was an issue parsing the yaml file and the cover could not be downloaded.")
-            print("----Logged missing cover due to parse error. Redownload origin file.")
-            log_name = "parse-error"
-            log_message = "had an error parsing the yaml and the cover art could not be downloaded. Redownload the origin file"
-            log_outcomes(directory, log_name, log_message)
-            parse_error += 1  # variable will increment every loop iteration
-            return
-
-        # turn the data into variables
-        artist_name = data["Artist"]
-        album_name = data["Name"]
-        original_folder_name = data["Directory"]
-        original_year = data["Original year"]
-        edition = data["Edition"]
-        catalog_number = data["Catalog number"]
-        f.close()
-
-        # check to see if a folder with the artist name exists
-        clean_artist_name = cleanFilename(artist_name)
-        clean_artist_folder_path = os.path.join(renamed_directory, clean_artist_name)
-        isdir_artist = os.path.isdir(clean_artist_folder_path)
-
-        # create artist folder if it doesn't exist
-        if isdir_artist == True:
-            print(f"--No new directory needed for {artist_name}")
-        else:
-            os.mkdir(clean_artist_folder_path)
-            print(f"--Created directory for {artist_name}")
-
-        # copy directory to work folder
-        full_work_path = os.path.join(work_directory, original_folder_name)
-        shutil.copytree(directory, full_work_path)
-        print(f"--Copied {original_folder_name} to work directory")
-
-        # check to see if an album with the name exists in the artist folder and try a variation if there is
-        # start by setting up different folder names if there is a duplicate folder (normal>edition>catalog>original year)
-        artist_album_path = os.path.join(clean_artist_folder_path, album_name)
-        isdir_album = os.path.isdir(artist_album_path)
-        artist_album_edition_path = clean_artist_folder_path + os.sep + album_name + " (" + str(edition) + ")"
-        isdir_album_edition = os.path.isdir(artist_album_edition_path)
-        artist_album_catalog_path = clean_artist_folder_path + os.sep + album_name + " (Cat# " + str(catalog_number) + ")"
-        isdir_album_catalog = os.path.isdir(artist_album_catalog_path)
-        artist_album_year_path = clean_artist_folder_path + os.sep + album_name + " (" + str(original_year) + ")"
-        isdir_album_year = os.path.isdir(artist_album_year_path)
-        # set album_name for folder based on wheter there is an existing folder and the right metadata
-        if isdir_album == False:
-            print(f"--There is no folder called {album_name}. Rename and move the album.")
-            final_album_name = album_name
-        elif isdir_album_edition == False and edition != None:
-            print(f"--There is no folder called {album_name} ({edition}). Rename and move the album.")
-            final_album_name = album_name + " (" + str(edition) + ")"
-        elif isdir_album_catalog == False and catalog_number != None:
-            print(f"--There is no folder called {album_name} (Cat# {catalog_number}). Rename and move the album.")
-            final_album_name = album_name + " (Cat# " + str(catalog_number) + ")"
-        elif isdir_album_year == False and original_year != None:
-            print(f"--There is no folder called {album_name} ({original_year}). Rename and move the album.")
-            final_album_name = album_name + " (" + str(original_year) + ")"
-
-        # run windows string cleaning function to remove illegal characters
-        # calls the function cleanFilename feeding it the final album name and creating new cleaned variable
-        clean_final_album_name = cleanFilename(final_album_name)
-
-        # rename album folder
-        final_album_path = os.path.join(work_directory, clean_final_album_name)
-        os.rename(full_work_path, final_album_path)
-        print(f"--Renamed {original_folder_name} to {clean_final_album_name}")
-
-        # move renamed album to artist folder
-        full_artist_folder_path = os.path.join(clean_artist_folder_path, clean_final_album_name)
-        shutil.move(final_album_path, full_artist_folder_path)
-        print(f"--Moved {clean_final_album_name} to {artist_name} directory")
-
-        count += 1  # variable will increment every loop iteration
-    # otherwise log that the origin file is missing
+        return True
     else:
-        # split the director to make sure that it distinguishes between foldrs that should and shouldn't have origin files
+        # split the directory to make sure that it distinguishes between folders that should and shouldn't have origin files
         current_path_segments = directory.split(os.sep)
         current_segments = len(current_path_segments)
         # create different log files depending on whether the origin file is missing somewhere it shouldn't be
-        if origin_location != current_segments:
+        if album_location_check != current_segments:
             # log the missing origin file folders that are likely supposed to be missing
             print("--An origin file is missing from a folder that should not have one.")
             print("--Logged missing origin file.")
@@ -241,6 +186,7 @@ def sort_rename(directory):
             log_message = "origin file is missing from a folder that should not have one.\nSince it shouldn't be there it is probably fine but you can double check"
             log_outcomes(directory, log_name, log_message)
             good_missing += 1  # variable will increment every loop iteration
+            return False
         else:
             # log the missing origin file folders that are not likely supposed to be missing
             print("--An origin file is missing from a folder that should have one.")
@@ -249,6 +195,139 @@ def sort_rename(directory):
             log_message = "origin file is missing from a folder that should have one"
             log_outcomes(directory, log_name, log_message)
             bad_missing += 1  # variable will increment every loop iteration
+            return False
+
+
+#  A function that gets the directory and then opens the origin file and extracts the needed variables
+def get_metadata(directory):
+    global parse_error
+    global origin_old
+
+    # check to see if there is an origin file
+    file_exists = os.path.exists("origin.yaml")
+    origin_location = os.path.join(directory,"origin.yaml")
+    # if origin file exists, load it, copy, and rename
+    if file_exists == True:
+        print("--The origin file location is valid.")     
+        # get album name
+        album_name = directory.split(os.sep)
+        album_name = album_name[-1]
+        print(f"--Getting metadata for {album_name}")
+        # open the yaml
+        try:
+            with open(origin_location, encoding="utf-8") as f:
+                data = yaml.load(f, Loader=yaml.FullLoader)
+        except:
+            print("--There was an issue parsing the yaml file and the cover could not be downloaded.")
+            print("--Logged missing cover due to parse error. Redownload origin file.")
+            log_name = "parse-error"
+            log_message = "had an error parsing the yaml and the cover art could not be downloaded. Redownload the origin file"
+            log_outcomes(directory, log_name, log_message)
+            parse_error += 1  # variable will increment every loop iteration
+            return
+        # check to see if the origin file has the corect metadata
+        if "Cover" in data.keys():
+            print("--You are using the correct version of gazelle-origin.")
+
+            # turn the data into variables
+            origin_metadata = {
+                "artist_name": data["Artist"],
+                "album_name": data["Name"],
+                "release_type": data["Release type"],
+                "edition": data["Edition"],
+                "edition_label": data["Record label"],
+                "edition_cat": data["Catalog number"],
+                "edition_year": data["Edition year"],
+                "djs": data["DJs"],
+                "composers": data["Composers"],
+                "conductors": data["Conductors"],
+                "original_year": data["Original year"],
+                "media": data["Media"],
+                "dl_directory": data["Directory"],
+            }
+            f.close()
+            return origin_metadata
+        else:
+            print("--You need to update your origin files with more metadata.")
+            print("--Switch to the gazelle-origin fork here: https://github.com/spinfast319/gazelle-origin")
+            print("--Then run: https://github.com/spinfast319/Update-Gazelle-Origin-Files")
+            print("--Then try this script again.")
+            print("--Logged out of date origin file.")
+            log_name = "out-of-date-origin"
+            log_message = "origin file out of date"
+            log_outcomes(directory, log_name, log_message)
+            origin_old += 1  # variable will increment every loop iteration'''
+
+
+#  A function that gets the directory and then opens the origin file and creates a dict of metadata
+def sort_rename(directory, origin_metadata):
+    global count
+
+    # turn the data into variables
+    artist_name = origin_metadata["artist_name"]
+    album_name = origin_metadata["album_name"]
+    original_folder_name = origin_metadata["dl_directory"]
+    original_year = origin_metadata["original_year"]
+    edition = origin_metadata["edition"]
+    catalog_number = origin_metadata["edition_cat"]
+
+    # check to see if a folder with the artist name exists
+    clean_artist_name = cleanFilename(artist_name)
+    clean_artist_folder_path = os.path.join(renamed_directory, clean_artist_name)
+    isdir_artist = os.path.isdir(clean_artist_folder_path)
+
+    # create artist folder if it doesn't exist
+    if isdir_artist == True:
+        print(f"--No new directory needed for {artist_name}")
+    else:
+        os.mkdir(clean_artist_folder_path)
+        print(f"--Created directory for {artist_name}")
+
+    # copy directory to work folder
+    full_work_path = os.path.join(work_directory, original_folder_name)
+    shutil.copytree(directory, full_work_path)
+    print(f"--Copied {original_folder_name} to work directory")
+
+    # check to see if an album with the name exists in the artist folder and try a variation if there is
+    # start by setting up different folder names if there is a duplicate folder (normal>edition>catalog>original year)
+    artist_album_path = os.path.join(clean_artist_folder_path, album_name)
+    isdir_album = os.path.isdir(artist_album_path)
+    artist_album_edition_path = clean_artist_folder_path + os.sep + album_name + " (" + str(edition) + ")"
+    isdir_album_edition = os.path.isdir(artist_album_edition_path)
+    artist_album_catalog_path = clean_artist_folder_path + os.sep + album_name + " (Cat# " + str(catalog_number) + ")"
+    isdir_album_catalog = os.path.isdir(artist_album_catalog_path)
+    artist_album_year_path = clean_artist_folder_path + os.sep + album_name + " (" + str(original_year) + ")"
+    isdir_album_year = os.path.isdir(artist_album_year_path)
+    # set album_name for folder based on wheter there is an existing folder and the right metadata
+    if isdir_album == False:
+        print(f"--There is no folder called {album_name}. Rename and move the album.")
+        final_album_name = album_name
+    elif isdir_album_edition == False and edition != None:
+        print(f"--There is no folder called {album_name} ({edition}). Rename and move the album.")
+        final_album_name = album_name + " (" + str(edition) + ")"
+    elif isdir_album_catalog == False and catalog_number != None:
+        print(f"--There is no folder called {album_name} (Cat# {catalog_number}). Rename and move the album.")
+        final_album_name = album_name + " (Cat# " + str(catalog_number) + ")"
+    elif isdir_album_year == False and original_year != None:
+        print(f"--There is no folder called {album_name} ({original_year}). Rename and move the album.")
+        final_album_name = album_name + " (" + str(original_year) + ")"
+
+    # run windows string cleaning function to remove illegal characters
+    # calls the function cleanFilename feeding it the final album name and creating new cleaned variable
+    clean_final_album_name = cleanFilename(final_album_name)
+
+    # rename album folder
+    final_album_path = os.path.join(work_directory, clean_final_album_name)
+    os.rename(full_work_path, final_album_path)
+    print(f"--Renamed {original_folder_name} to {clean_final_album_name}")
+
+    # move renamed album to artist folder
+    full_artist_folder_path = os.path.join(clean_artist_folder_path, clean_final_album_name)
+    shutil.move(final_album_path, full_artist_folder_path)
+    print(f"--Moved {clean_final_album_name} to {artist_name} directory")
+
+    count += 1  # variable will increment every loop iteration
+
 
 
 # The main function that controls the flow of the script
@@ -266,7 +345,13 @@ def main():
         #  Run a loop that goes into each directory identified in the list and runs the function that copies and renames the folders
         for i in directories:
             os.chdir(i)  # Change working Directory
-            sort_rename(i)  # Run your function
+            print("\n")
+            print(f"Sorting and renaming {i}")
+            origin_exists = check_file(i) # Determine if folder should have origin file and if it does
+            if origin_exists == True:
+                origin_metadata = get_metadata(i) # Get metadata associate with album
+                if origin_metadata != None:
+                    sort_rename(i, origin_metadata)  # Sort and renam the album
 
     finally:
         # run summary text function to provide error messages
