@@ -13,19 +13,19 @@ import yaml  # Imports yaml
 import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 
-
+"""
 #  Set your directories here
+album_directory = "M:\PROCESS"  # Which directory do you want to start with?
+renamed_directory = "M:\Music"  # Which directory do you want to copy the rename folders to?
+log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in?
+work_directory = "M:\PROCESS-LOGS\Work"  # Create directory for temp file storage and renaming
+"""
+
+#  Set your test directories here
 album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
-
-
-# Set whether you are using nested folders or have all albums in one directory here
-# If you have all your ablums in one music directory Music/Album_name then set this value to 1
-# If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
-# The default is 1
-album_depth = 1
 
 """
 #  Set your linux directories here
@@ -35,6 +35,12 @@ log_directory = "/mnt/m/Python Test Environment/Logs" # Which directory do you w
 work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
 """
 
+# Set whether you are using nested folders or have all albums in one directory here
+# If you have all your ablums in one music directory Music/Album_name then set this value to 1
+# If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
+# The default is 1
+album_depth = 1
+
 # Establishes the counters for completed albums and missing origin files
 count = 0
 good_missing = 0
@@ -42,6 +48,7 @@ bad_missing = 0
 parse_error = 0
 origin_old = 0
 error_message = 0
+total_count = 0
 
 # identifies location origin files are supposed to be and sets album_name
 path_segments = album_directory.split(os.sep)
@@ -89,9 +96,10 @@ def summary_text():
     global good_missing
     global origin_old
     global error_message
+    global total_count
 
     print("")
-    print(f"This script reorganized {count} albums.")
+    print(f"This script reorganized {count} albums out of {total_count}.")
     print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 
     error_status = error_exists(parse_error)
@@ -170,6 +178,15 @@ def check_file(directory):
     global good_missing
     global bad_missing
     global album_location_check
+    global total_count
+
+    # get the depth of this directory
+    current_path_segments = directory.split(os.sep)
+    current_segments = len(current_path_segments)
+
+    # check to see if this is an album and count it if it is
+    if album_location_check == current_segments:
+        total_count += 1  # variable will increment every loop iteration
 
     # check to see if there is an origin file
     file_exists = os.path.exists("origin.yaml")
@@ -178,8 +195,6 @@ def check_file(directory):
         return True
     else:
         # split the directory to make sure that it distinguishes between folders that should and shouldn't have origin files
-        current_path_segments = directory.split(os.sep)
-        current_segments = len(current_path_segments)
         # create different log files depending on whether the origin file is missing somewhere it shouldn't be
         if album_location_check != current_segments:
             # log the missing origin file folders that are likely supposed to be missing
@@ -209,10 +224,10 @@ def get_metadata(directory):
 
     # check to see if there is an origin file
     file_exists = os.path.exists("origin.yaml")
-    origin_location = os.path.join(directory,"origin.yaml")
+    origin_location = os.path.join(directory, "origin.yaml")
     # if origin file exists, load it, copy, and rename
     if file_exists == True:
-        print("--The origin file location is valid.")     
+        print("--The origin file location is valid.")
         # get album name
         album_name = directory.split(os.sep)
         album_name = album_name[-1]
@@ -269,7 +284,7 @@ def get_metadata(directory):
         log_message = "origin file is missing from a folder that should have one"
         log_list = None
         log_outcomes(directory, log_name, log_message, log_list)
-        bad_missing += 1  # variable will increment every loop iteration        
+        bad_missing += 1  # variable will increment every loop iteration
 
 
 #  A function that gets the directory and then opens the origin file and creates a dict of metadata
@@ -283,10 +298,10 @@ def sort_rename(directory, origin_metadata):
     original_year = origin_metadata["original_year"]
     edition = origin_metadata["edition"]
     catalog_number = origin_metadata["edition_cat"]
-    
+
     # create dj variable
     if origin_metadata["djs"] != None:
-        dj = origin_metadata["djs"] 
+        dj = origin_metadata["djs"]
         clean_dj_name = cleanFilename(dj)
     else:
         dj = None
@@ -296,10 +311,10 @@ def sort_rename(directory, origin_metadata):
     if clean_artist_name == "Various Artists" and dj != None:
         clean_artist_folder_path = os.path.join(renamed_directory, clean_dj_name)
         dj_album = True
-    else:    
+    else:
         clean_artist_folder_path = os.path.join(renamed_directory, clean_artist_name)
         dj_album = False
-    
+
     # check to see if a folder with the artist name exists
     isdir_artist = os.path.isdir(clean_artist_folder_path)
 
@@ -362,7 +377,6 @@ def sort_rename(directory, origin_metadata):
     count += 1  # variable will increment every loop iteration
 
 
-
 # The main function that controls the flow of the script
 def main():
 
@@ -380,9 +394,9 @@ def main():
             os.chdir(i)  # Change working Directory
             print("\n")
             print(f"Sorting and renaming {i}")
-            origin_exists = check_file(i) # Determine if folder should have origin file and if it does
+            origin_exists = check_file(i)  # Determine if folder should have origin file and if it does
             if origin_exists == True:
-                origin_metadata = get_metadata(i) # Get metadata associate with album
+                origin_metadata = get_metadata(i)  # Get metadata associate with album
                 if origin_metadata != None:
                     sort_rename(i, origin_metadata)  # Sort and renam the album
 
