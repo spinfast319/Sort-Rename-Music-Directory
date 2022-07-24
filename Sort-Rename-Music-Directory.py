@@ -283,18 +283,38 @@ def sort_rename(directory, origin_metadata):
     original_year = origin_metadata["original_year"]
     edition = origin_metadata["edition"]
     catalog_number = origin_metadata["edition_cat"]
+    
+    # create dj variable
+    if origin_metadata["djs"] != None:
+        dj = origin_metadata["djs"] 
+        clean_dj_name = cleanFilename(dj)
+    else:
+        dj = None
 
-    # check to see if a folder with the artist name exists
+    # set up artist, Various Artist, or DJ path
     clean_artist_name = cleanFilename(artist_name)
-    clean_artist_folder_path = os.path.join(renamed_directory, clean_artist_name)
+    if clean_artist_name == "Various Artists" and dj != None:
+        clean_artist_folder_path = os.path.join(renamed_directory, clean_dj_name)
+        dj_album = True
+    else:    
+        clean_artist_folder_path = os.path.join(renamed_directory, clean_artist_name)
+        dj_album = False
+    
+    # check to see if a folder with the artist name exists
     isdir_artist = os.path.isdir(clean_artist_folder_path)
 
     # create artist folder if it doesn't exist
     if isdir_artist == True:
-        print(f"--No new directory needed for {artist_name}")
+        if dj_album == True:
+            print(f"--No new directory needed for {clean_dj_name}")
+        else:
+            print(f"--No new directory needed for {clean_artist_name}")
     else:
         os.mkdir(clean_artist_folder_path)
-        print(f"--Created directory for {artist_name}")
+        if dj_album == True:
+            print(f"--Created directory for {clean_dj_name}")
+        else:
+            print(f"--Created directory for {clean_artist_name}")
 
     # copy directory to work folder
     full_work_path = os.path.join(work_directory, original_folder_name)
