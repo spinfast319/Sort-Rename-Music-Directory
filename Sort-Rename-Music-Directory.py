@@ -87,6 +87,7 @@ def summary_text():
     global parse_error
     global bad_missing
     global good_missing
+    global origin_old
     global error_message
 
     print("")
@@ -95,6 +96,8 @@ def summary_text():
 
     error_status = error_exists(parse_error)
     print(f"--{error_status}: There were {parse_error} albums skipped due to not being able to open the yaml. Redownload the yaml file.")
+    error_status = error_exists(origin_old)
+    print(f"--{error_status}: There were {origin_old} origin files that do not have the needed metadata and need to be updated.")
     error_status = error_exists(bad_missing)
     print(f"--{error_status}: There were {bad_missing} folders missing an origin files that should have had them.")
     error_status = error_exists(good_missing)
@@ -202,6 +205,7 @@ def check_file(directory):
 def get_metadata(directory):
     global parse_error
     global origin_old
+    global bad_missing
 
     # check to see if there is an origin file
     file_exists = os.path.exists("origin.yaml")
@@ -256,7 +260,16 @@ def get_metadata(directory):
             log_name = "out-of-date-origin"
             log_message = "origin file out of date"
             log_outcomes(directory, log_name, log_message)
-            origin_old += 1  # variable will increment every loop iteration'''
+            origin_old += 1  # variable will increment every loop iteration
+    else:
+        # log the missing origin file folders that are not likely supposed to be missing
+        print("--An origin file is missing from a folder that should have one.")
+        print("--Logged missing origin file.")
+        log_name = "bad-missing-origin"
+        log_message = "origin file is missing from a folder that should have one"
+        log_list = None
+        log_outcomes(directory, log_name, log_message, log_list)
+        bad_missing += 1  # variable will increment every loop iteration        
 
 
 #  A function that gets the directory and then opens the origin file and creates a dict of metadata
