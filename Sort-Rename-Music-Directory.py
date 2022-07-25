@@ -13,19 +13,21 @@ import yaml  # Imports yaml
 import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 
-"""
+
 #  Set your directories here
 album_directory = "M:\PROCESS"  # Which directory do you want to start with?
 renamed_directory = "M:\Music"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in?
 work_directory = "M:\PROCESS-LOGS\Work"  # Create directory for temp file storage and renaming
-"""
 
+
+'''
 #  Set your test directories here
 album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
+'''
 
 """
 #  Set your linux directories here
@@ -49,6 +51,7 @@ parse_error = 0
 origin_old = 0
 error_message = 0
 total_count = 0
+remove_count = 0
 
 # identifies location origin files are supposed to be and sets album_name
 path_segments = album_directory.split(os.sep)
@@ -56,8 +59,8 @@ segments = len(path_segments)
 # origin_location = segments + album_depth
 album_location_check = segments + album_depth
 
-# creates the list of albums that need to be moved post sorting
-move_list = []
+# creates the list of albums that will be removed post sorting, renaming and moving
+remove_list = []
 
 # A function to log events
 def log_outcomes(directory, log_name, message):
@@ -97,9 +100,10 @@ def summary_text():
     global origin_old
     global error_message
     global total_count
+    global remove_count
 
     print("")
-    print(f"This script reorganized {count} albums out of {total_count}.")
+    print(f"This script reorganized {count} albums out of {total_count}. After moving and renaming them it removed {remove_count} albums.")
     print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 
     error_status = error_exists(parse_error)
@@ -152,25 +156,24 @@ def cleanFilename(file_name):
     return file_name
 
 
-# A function to move albums to the correct folder
-def move_albums(move_list):
-    global count
+# A function to remove the original albums that were copied and renamed
+def remove_albums(remove_list):
+    global remove_count
 
-    # Loop through the list of albums to move
-    for i in move_list:
+    # Loop through the list of albums to remove
+    for i in remove_list:
 
         # Break each entry into a source and target
-        start_path = i[0]
-        target = i[1]
+        original_path = i[0]
+        new_path = i[1]
 
-        # Move them to the folders they belong in
+        # Remove them
         print("")
-        print("Moving.")
-        print(f"--Source: {start_path}")
-        print(f"--Destination: {target}")
-        shutil.move(start_path, target)
-        print("Move completed.")
-        count += 1  # variable will increment every loop iteration
+        print("Removing.")
+        print(f"--Removed: {original_path}")
+        print(f"--New Location: {new_path}")
+        shutil.rmtree(original_path)
+        remove_count += 1  # variable will increment every loop iteration
 
 
 # A function to check if the origin file is there and to determine whether it is supposed to be there.
@@ -290,6 +293,7 @@ def get_metadata(directory):
 #  A function that gets the directory and then opens the origin file and creates a dict of metadata
 def sort_rename(directory, origin_metadata):
     global count
+    global remove_list
 
     # turn the data into variables
     artist_name = origin_metadata["artist_name"]
@@ -374,7 +378,14 @@ def sort_rename(directory, origin_metadata):
     shutil.move(final_album_path, full_artist_folder_path)
     print(f"--Moved {clean_final_album_name} to {artist_name} directory")
 
+    # remove original directory
+    # make the pair a tupple
+    remove_pair = (directory, full_artist_folder_path)
+    # adds the tupple to the list
+    remove_list.append(remove_pair)
+
     count += 1  # variable will increment every loop iteration
+    return remove_list
 
 
 # The main function that controls the flow of the script
@@ -389,6 +400,9 @@ def main():
         directories = [os.path.abspath(x[0]) for x in os.walk(album_directory)]
         directories.remove(os.path.abspath(album_directory))  # If you don't want your main directory included
 
+        print("")
+        print("Part 1: Sort and Rename")
+
         #  Run a loop that goes into each directory identified in the list and runs the function that copies and renames the folders
         for i in directories:
             os.chdir(i)  # Change working Directory
@@ -398,7 +412,15 @@ def main():
             if origin_exists == True:
                 origin_metadata = get_metadata(i)  # Get metadata associate with album
                 if origin_metadata != None:
-                    sort_rename(i, origin_metadata)  # Sort and renam the album
+                    remove_list = sort_rename(i, origin_metadata)  # Sort and renam the album
+
+        # Change directory so the album directory can be moved and move them
+        os.chdir(log_directory)
+
+        # Remove all of the albums that have been copied and renamed
+        print("")
+        print("Part 2: Clean Up")
+        remove_albums(remove_list)
 
     finally:
         # run summary text function to provide error messages
