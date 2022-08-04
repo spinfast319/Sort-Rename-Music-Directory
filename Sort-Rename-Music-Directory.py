@@ -21,13 +21,13 @@ log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in
 work_directory = "M:\PROCESS-LOGS\Work"  # Create directory for temp file storage and renaming
 
 
-'''
+"""
 #  Set your test directories here
 album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
 renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
-'''
+"""
 
 """
 #  Set your linux directories here
@@ -336,14 +336,11 @@ def sort_rename(directory, origin_metadata):
         else:
             print(f"--Created directory for {clean_artist_name}")
 
-
-    # strip invisible characters out of 
-    #original_folder_name = original_folder_name.replace('\u200e','')
+    # strip invisible characters out of names
     original_folder_name = original_folder_name.strip()
-    #directory = directory.replace('\u200e','')
     directory = directory.strip()
-    
-    # copy directory to work folder   
+
+    # copy directory to work folder
     full_work_path = os.path.join(work_directory, original_folder_name)
     shutil.copytree(directory, full_work_path)
     print(f"--Copied {original_folder_name} to work directory")
@@ -385,7 +382,7 @@ def sort_rename(directory, origin_metadata):
     full_artist_folder_path = os.path.join(clean_artist_folder_path, clean_final_album_name)
     shutil.move(final_album_path, full_artist_folder_path)
     if dj_album == True:
-         print(f"--Moved {clean_final_album_name} to {clean_dj_name} directory")   
+        print(f"--Moved {clean_final_album_name} to {clean_dj_name} directory")
     else:
         print(f"--Moved {clean_final_album_name} to {artist_name} directory")
 
