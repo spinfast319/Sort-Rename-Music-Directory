@@ -15,27 +15,11 @@ import datetime  # Imports functionality that lets you make timestamps
 
 
 #  Set your directories here
-album_directory = "M:\PROCESS"  # Which directory do you want to start with?
-renamed_directory = "M:\Music"  # Which directory do you want to copy the rename folders to?
-log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in?
-work_directory = "M:\PROCESS-LOGS\Work"  # Create directory for temp file storage and renaming
-
-
-"""
-#  Set your test directories here
-album_directory = "M:\Python Test Environment\Albums2"  # Which directory do you want to start with?
-renamed_directory = "M:\Python Test Environment\Renamed"  # Which directory do you want to copy the rename folders to?
+album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
+renamed_directory = "M:\Python Test Environment\Music"  # Which directory do you want to copy the rename folders to?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for temp file storage and renaming
-"""
 
-"""
-#  Set your linux directories here
-album_directory = "/mnt/m/Python Test Environment/Albums" # Which directory has the albums you want to update the origin files for
-renamed_directory = "/mnt/m/Python Test Environment/Renamed" # Which directory do you want to copy the rename folders to?
-log_directory = "/mnt/m/Python Test Environment/Logs" # Which directory do you want the log albums that have missing origin files in?
-work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
-"""
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
