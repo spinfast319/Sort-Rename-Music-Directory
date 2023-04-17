@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Sort and Rename Music Directories
 # author: hypermodified
 # This script is meant to use yaml origin files to provide standardised metadata to rename music folders
